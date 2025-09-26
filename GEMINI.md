@@ -1,0 +1,1 @@
+Write all code in ENGLISH. That includes comments and variable/function names.
