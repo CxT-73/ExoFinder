@@ -1,21 +1,14 @@
 
-function calculateLightCurveJS(starRadius, bodyRadius, impactParam, orbitalPeriod) {
-    const time = Array.from({ length: 1000 }, (_, i) => (i / 999) * orbitalPeriod - orbitalPeriod / 2);
-    const r_p = bodyRadius / 109.2 / starRadius; // Planet radius in stellar radii
-    const b = impactParam;
-
-    // Transit velocity (approximate) in stellar radii per day
-    const semiMajorAxis = ((orbitalPeriod / 365.25)**2)**(1/3) * 215.032; // In solar radii
-    const v = (2 * Math.PI * semiMajorAxis) / orbitalPeriod;
-
-
-    const flux = time.map(t => {
-        // Position of the planet in the sky plane (in stellar radii)
-        const z = Math.sqrt( (v*t)**2 + b**2 );
-        return getTransitFlux(z, r_p);
-    });
-
-    return { time, flux };
+function calculateLightCurveJS(impactParam, prevData) {
+    for(let i=0; i<499; i++){
+        prevData[i] = prevData[i+1]; 
+    }
+    if(impactParam<=1){
+        if(impactParam>=0.7){prevData[499] = 1+(impactParam**2)-1.4*impactParam+0.4;}
+        else{prevData[499] = 0.91;}
+    }
+    else{prevData[499]=1}
+    return prevData;
 }
 
 function getTransitFlux(z, r_p) {
@@ -43,12 +36,11 @@ function getTransitFlux(z, r_p) {
 }
 
 
-function calculateKoiFeaturesJS(starRadius, starMass, starTemp, bodyRadius, orbitalPeriod, flux, time, impactParam) {
+function calculateKoiFeaturesJS(starRadius, starMass, starTemp, bodyRadius, orbitalPeriod, impactParam) {
     const koi_period = orbitalPeriod;
-    const koi_depth = (1 - Math.min(...flux)) * 1e6;
+    
     const koi_ror = (bodyRadius / 109.2) / starRadius;
 
-    const inTransit = flux.map((f, i) => ({f, t: time[i]})).filter(p => p.f < 1.0);
 
     const P_years = orbitalPeriod / 365.25;
     const M_solar = starMass;
@@ -58,7 +50,6 @@ function calculateKoiFeaturesJS(starRadius, starMass, starTemp, bodyRadius, orbi
 
     return {
         "koi_period": koi_period,
-        "koi_depth": koi_depth,
         "koi_ror": koi_ror,
         "koi_ingress": 0, // Simplified model doesn't calculate ingress
         "koi_impact": impactParam,

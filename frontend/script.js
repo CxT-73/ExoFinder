@@ -1,4 +1,73 @@
 document.addEventListener('DOMContentLoaded', () => {
+    let startTime;
+
+    let mouseX = 0, mouseY = 0;
+
+    document.addEventListener('mousemove', (event) => {
+        mouseX = event.clientX-canvas.getBoundingClientRect().left;
+        mouseY = event.clientY-canvas.getBoundingClientRect().top;
+    });
+
+
+    function animateFrame(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        
+        const chartCanvas = document.getElementById('light-curve-chart');
+        
+        const fluxData = Chart.getChart(chartCanvas).data.datasets[0].data;
+
+
+        // Calculate parameters from inputs and mouse position
+        const starRadius = parseFloat(starRadiusInput.value);
+        
+        const starRadiusPixels = starRadius * 50;
+        const starCenterY = canvas.height / 2;
+        const starCenterX = canvas.width / 2;
+        const impactParam = Math.sqrt((mouseY - starCenterY)**2 + (mouseX-starCenterX)**2)/starRadiusPixels ;
+        console.log(starCenterY, mouseY);
+        console.log(starCenterX, mouseX);
+        console.log(impactParam)
+        // Generate and display the full light curve instantly
+        const flux  = calculateLightCurveJS(impactParam, fluxData); //We sould use start time to calc how many time units the grafic moves
+        const time = Array(500).fill(1.0);
+        updateLightCurveChart(time, flux);
+        // Solicitar próximo frame
+        requestAnimationFrame(animateFrame);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const canvas = document.getElementById('simulation-canvas');
     const ctx = canvas.getContext('2d');
 
@@ -12,17 +81,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const koiFeaturesDiv = document.getElementById('koi-features');
     let lightCurveChart;
 
+    
+
     // --- Core Functions ---
 
     function setup() {
         setDefaultState();
         addEventListeners();
+        requestAnimationFrame(animateFrame);
     }
 
     function setDefaultState() {
         const labels = Array.from({ length: 500 }, (_, i) => i);
         const flux = Array(500).fill(1.0);
         updateLightCurveChart(labels, flux, true);
+        displayKoiFeatures(null); // Clear features
+        clearCanvas();
+        drawStar();
+    }
+
+    function resetState() {
         displayKoiFeatures(null); // Clear features
         clearCanvas();
         drawStar();
@@ -43,14 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const starRadiusPixels = starRadius * 50;
         const starCenterY = canvas.height / 2;
-        const impactParam = Math.abs(pos.y - starCenterY) / starRadiusPixels;
-
-        // Generate and display the full light curve instantly
-        const { time, flux } = calculateLightCurveJS(starRadius, bodyRadius, impactParam, orbitalPeriod);
-        updateLightCurveChart(time, flux);
-
+        const starCenterX = canvas.width / 2;
+        const impactParam = Math.sqrt((pos.y - starCenterY)**2 + (pos.x-starCenterX)**2) / starRadiusPixels;
+        
+        
         // Calculate and display KOI features
-        const features = calculateKoiFeaturesJS(starRadius, starMass, starTemp, bodyRadius, orbitalPeriod, flux, time, impactParam);
+        const features = calculateKoiFeaturesJS(starRadius, starMass, starTemp, bodyRadius, orbitalPeriod, impactParam);
         displayKoiFeatures(features);
     }
 
@@ -58,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addEventListeners() {
         canvas.addEventListener('mousemove', (e) => handleInteraction(getMousePos(e)));
-        canvas.addEventListener('mouseleave', setDefaultState);
+        canvas.addEventListener('mouseleave', resetState);
         // Update simulation if parameters are changed via the "Update" button
         document.getElementById('update-button').addEventListener('click', () => {
             clearCanvas();
