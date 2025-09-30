@@ -1,15 +1,69 @@
 
-function calculateLightCurveJS(impactParam, prevData) {
-    for(let i=0; i<499; i++){
+
+//given the new value, the previus data and the time elapsed since the last time, returns the previus data shifted dt amount and adding the new data on the free spots
+function getNewYValues(newValue, prevData, dt) {
+    const arraySize = 500;
+    dt = dt+1
+    for(let i=0; i<arraySize-dt; i++){
         prevData[i] = prevData[i+1]; 
     }
-    if(impactParam<=1){
-        if(impactParam>=0.7){prevData[499] = 1+(impactParam**2)-1.4*impactParam+0.4;}
-        else{prevData[499] = 0.91;}
+    for(let i=arraySize-1; i>=arraySize-dt; i--){
+        prevData[i]=newValue;
     }
-    else{prevData[499]=1}
+
     return prevData;
 }
+
+// Given r1,r2 (radi of two circumferences) and d (distance between centers), returns the area of set diferenci between the
+// first and second circumferneces.
+function areaDifference(r1, r2, d) {
+  // Case 1: No overlap
+  if (d >= r1 + r2) {
+    return Math.PI * r1 * r1;
+  }
+
+  // Case 2: C1 completely inside C2
+  if (d <= r2 - r1) {
+    return 0;
+  }
+
+  // Case 3: C2 completely inside C1
+  if (d <= r1 - r2) {
+    return Math.PI * (r1 * r1 - r2 * r2);
+  }
+
+  // Case 4: Partial overlap
+  const alpha = Math.acos((d * d + r1 * r1 - r2 * r2) / (2 * d * r1));
+  const beta  = Math.acos((d * d + r2 * r2 - r1 * r1) / (2 * d * r2));
+
+  const overlap = r1 * r1 * alpha + r2 * r2 * beta
+                - 0.5 * Math.sqrt(
+                    (-d + r1 + r2) *
+                    (d + r1 - r2) *
+                    (d - r1 + r2) *
+                    (d + r1 + r2)
+                  );
+
+  return Math.PI * r1 * r1 - overlap;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Functions done by mi pana Gemini
+
 
 function getTransitFlux(z, r_p) {
     // z: separation of centers in units of stellar radii

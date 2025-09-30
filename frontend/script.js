@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    let startTime;
 
+    const convRSolarToREarth = 109.2; //Converison factor from Solar Radi to Earth radi
+    const timeArray = Array(500).fill(1.0);
+    let startTime = 0;
     let mouseX = 0, mouseY = 0;
 
     document.addEventListener('mousemove', (event) => {
@@ -10,29 +12,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function animateFrame(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
         
+        const elapsed = timestamp - startTime;
+        startTime = timestamp;
         const chartCanvas = document.getElementById('light-curve-chart');
         
         const fluxData = Chart.getChart(chartCanvas).data.datasets[0].data;
 
 
         // Calculate parameters from inputs and mouse position
-        const starRadius = parseFloat(starRadiusInput.value);
+        const starRadius =  convRSolarToREarth * parseFloat(starRadiusInput.value);
+        const starArea = Math.PI*starRadius*starRadius;
+        const bodyRadius = parseFloat(bodyRadiusInput.value);
         
-        const starRadiusPixels = starRadius * 50;
+
         const starCenterY = canvas.height / 2;
         const starCenterX = canvas.width / 2;
-        const impactParam = Math.sqrt((mouseY - starCenterY)**2 + (mouseX-starCenterX)**2)/starRadiusPixels ;
-        console.log(starCenterY, mouseY);
-        console.log(starCenterX, mouseX);
-        console.log(impactParam)
-        // Generate and display the full light curve instantly
-        const flux  = calculateLightCurveJS(impactParam, fluxData); //We sould use start time to calc how many time units the grafic moves
-        const time = Array(500).fill(1.0);
-        updateLightCurveChart(time, flux);
-        // Solicitar próximo frame
+        const distanceBodyToStar = Math.sqrt((mouseY - starCenterY)**2 + (mouseX-starCenterX)**2)
+        
+        const visibleArea = areaDifference(starRadius, bodyRadius, distanceBodyToStar);
+        const flux  = getNewYValues(visibleArea/starArea, fluxData, elapsed);
+        
+        updateLightCurveChart(timeArray, flux);
         requestAnimationFrame(animateFrame);
     }
 
@@ -64,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
+    // Functions done by mi pana gemini
 
 
 
@@ -147,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Drawing & UI ---
 
     function drawStar() {
-        const starRadius = parseFloat(starRadiusInput.value) * 50;
+        const starRadius = parseFloat(starRadiusInput.value) * convRSolarToREarth;
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, starRadius);
@@ -161,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawPlanet(x, y) {
-        const bodyRadius = parseFloat(bodyRadiusInput.value) * 2;
+        const bodyRadius = parseFloat(bodyRadiusInput.value);
         ctx.beginPath();
         ctx.arc(x, y, bodyRadius, 0, 2 * Math.PI);
         ctx.fillStyle = 'black';
