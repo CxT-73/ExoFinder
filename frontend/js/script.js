@@ -1,8 +1,37 @@
-document.addEventListener('DOMContentLoaded', () => {
+function showSection(sectionId) {
+    // 1. Ocultar todas las secciones
+    const sections = document.querySelectorAll('.web-section');
+    sections.forEach(section => {
+        section.classList.remove('visible');
+        section.classList.add('hidden');
+    });
 
+    // 2. Mostrar la sección seleccionada
+    const activeSection = document.getElementById(sectionId);
+    if (activeSection) {
+        // Quitamos 'hidden' y añadimos 'visible' para que CSS la muestre
+        activeSection.classList.remove('hidden');
+        activeSection.classList.add('visible');
+    }
+    
+    // 3. Actualizar el estilo de los botones (opcional, pero elegante)
+    const buttons = document.querySelectorAll('.navbar nav button');
+    buttons.forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // El botón activo es el que tiene el ID correspondiente al de la sección
+    const activeButton = document.getElementById('btn-' + sectionId);
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
+}
+
+// Asegurar que la primera parte esté visible al cargar
+document.addEventListener('DOMContentLoaded', () => {
+    
     const convRSolarToREarth = 109.2; //Converison factor from Solar Radi to Earth radi
     const timeArray = Array(500).fill(1.0);
-    let startTime = 0;
     let mouseX = 0, mouseY = 0;
 
     document.addEventListener('mousemove', (event) => {
@@ -13,27 +42,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function animateFrame(timestamp) {
         
-        const elapsed = timestamp - startTime;
-        startTime = timestamp;
+
+
+
+        //Uptdate the light-graph
         const chartCanvas = document.getElementById('light-curve-chart');
+        let fluxData = Chart.getChart(chartCanvas).data.datasets[0].data;
         
-        const fluxData = Chart.getChart(chartCanvas).data.datasets[0].data;
+        const noiseSlider = document.getElementById('noise-checkbox');
 
-
-        // Calculate parameters from inputs and mouse position
         const starRadius =  convRSolarToREarth * parseFloat(starRadiusInput.value);
         const starArea = Math.PI*starRadius*starRadius;
         const bodyRadius = parseFloat(bodyRadiusInput.value);
         
-
         const starCenterY = canvas.height / 2;
         const starCenterX = canvas.width / 2;
         const distanceBodyToStar = Math.sqrt((mouseY - starCenterY)**2 + (mouseX-starCenterX)**2)
         
         const visibleArea = areaDifference(starRadius, bodyRadius, distanceBodyToStar);
-        const flux  = getNewYValues(visibleArea/starArea, fluxData, elapsed);
+
+        var error = 0
+
+        if (noiseSlider.checked) { error = .0001*Math.sqrt( -2.0 * Math.log( Math.random() ) ) * Math.cos( 2.0 * Math.PI * Math.random()) }
+
+        const flux = visibleArea/starArea + error
+        fluxData  = getNewYValues(flux, fluxData);
         
-        updateLightCurveChart(timeArray, flux);
+        updateLightCurveChart(timeArray, fluxData);
         requestAnimationFrame(animateFrame);
     }
 
@@ -136,13 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function addEventListeners() {
         canvas.addEventListener('mousemove', (e) => handleInteraction(getMousePos(e)));
         canvas.addEventListener('mouseleave', resetState);
-        // Update simulation if parameters are changed via the "Update" button
-        document.getElementById('update-button').addEventListener('click', () => {
-            clearCanvas();
-            drawStar();
-            // You might want to reset the curve as well or update it based on current params
-            setDefaultState(); 
-        });
+
     }
 
     // --- Drawing & UI ---

@@ -1,9 +1,9 @@
 
 
 //given the new value, the previus data and the time elapsed since the last time, returns the previus data shifted dt amount and adding the new data on the free spots
-function getNewYValues(newValue, prevData, dt) {
+function getNewYValues(newValue, prevData) {
     const arraySize = 500;
-    dt = dt+1
+    dt = 1
     for(let i=0; i<arraySize-dt; i++){
         prevData[i] = prevData[i+1]; 
     }
