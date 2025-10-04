@@ -1,8 +1,9 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import numpy as np
 import uvicorn
+import pandas as pd
 
 app = FastAPI()
 
@@ -21,6 +22,20 @@ class TransitParams(BaseModel):
     drag_duration: float
     impact_param: float
 
+
+@app.post("/api/recibir_csv")
+async def recibir_csv(
+    file: UploadFile = File(...),
+    model_id: int = Form(...)
+):
+    df = pd.read_csv(file.file)
+    return {
+        "columns": df.columns.tolist(),
+        "rows": len(df),
+        "model_id": model_id
+    }
+
+
 @app.post("/predict")
 def predict_body(features: dict):
     if features["koi_prad"] < 20:
@@ -28,7 +43,7 @@ def predict_body(features: dict):
     else:
         return {"prediction": "Stellar Companion"}
 
-app.mount("/", StaticFiles(directory="./frontend/", html=True), name="static")
+app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
