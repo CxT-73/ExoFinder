@@ -16,7 +16,6 @@
     </header>
 
     <section id="simulation" class="web-section visible">
-        <h1>TRANSIT METHOD SIMULATION</h1>
         <div class="container">
             <div class="controls">
                 <h2>Star Parameters</h2>
@@ -62,9 +61,38 @@
         </div>
         </section>
 
-    <section id="models" class="web-section hidden">
-        <h1>MODEL TRAINING</h1>
+        <section id="models" class="web-section hidden">
+        <div class="container">
+            <div class="controls">
+            <h2>Dataset</h2>
+
+            <form action="http://127.0.0.1:8000/api/recibir_csv"
+                    method="post"
+                    enctype="multipart/form-data">
+                <input type="file" name="file" id="csv-file" accept=".csv" required>
+
+                <h2>Modelo</h2>
+                <select name="model_id" id="model-type" required>
+                <option value="0">Random Forest</option>
+                <option value="1">CatBoost</option>
+                <option value="2">XGBoost</option>
+                <option value="3">Ensemble (RF + NB + LGBM + SVC)</option>
+                </select>
+
+                <div style="margin-top:12px;">
+                <button type="submit" id="btn-train">Entrenar</button>
+                </div>
+            </form>
+            </div>
+
+            <div class="output">
+            <h2>Resultados</h2>
+            <pre id="train-result">—</pre>
+            </div>
+        </div>
         </section>
+
+
 
     <script src="js/simulation.js"></script>
     <script src="js/script.js"></script> </body>
