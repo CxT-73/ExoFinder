@@ -1,9 +1,13 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import numpy as np
 import uvicorn
 import pandas as pd
+from io import StringIO
+
+from model_api import pipeline_predict, pipeline_fit
 
 app = FastAPI()
 
@@ -24,15 +28,19 @@ class TransitParams(BaseModel):
 
 
 @app.post("/api/recibir_csv")
-async def recibir_csv(
-    file: UploadFile = File(...),
-    model_id: int = Form(...)
-):
+async def recibir_csv(file: UploadFile = File(...), model_id: int = Form(...)):
     df = pd.read_csv(file.file)
-    return {
-        "dataframe": df,
-        "model_id": model_id
+    df = pipeline_predict(df, model_id)
+
+    output = StringIO()
+    df.to_csv(output, index=False)
+    output.seek(0)
+
+    headers = {
+        'Content-Disposition': 'attachment; filename="result.csv"'
     }
+
+    return StreamingResponse(output, media_type='text/csv', headers=headers)
 
 
 @app.post("/predict")
