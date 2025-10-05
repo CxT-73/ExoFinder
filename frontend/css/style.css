@@ -300,6 +300,11 @@ input:checked + .slider:before {
     text-align: left;
 }
 
+#simulation .simulation{
+    width: 500px;
+    height: auto;
+}
+
 #simulation h2{
     font-size: 1.2rem;
     margin-bottom: 12px;
