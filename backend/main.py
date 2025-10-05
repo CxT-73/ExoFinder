@@ -30,8 +30,7 @@ async def recibir_csv(
 ):
     df = pd.read_csv(file.file)
     return {
-        "columns": df.columns.tolist(),
-        "rows": len(df),
+        "dataframe": df,
         "model_id": model_id
     }
 

@@ -5,4 +5,3 @@ scipy
 pandas
 pydantic
 python-multipart
-batman-package
