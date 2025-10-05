@@ -1,5 +1,5 @@
-**# NASA_SPACE_CHALLENGE-2025 -> **
-**#ExoFinder:**
+**# NASA_SPACE_CHALLENGE-2025 ->
+#ExoFinder:**
 
 **Summary:**
 ExoFinder is a web application designed to provide users, scientists, and enthusiasts with the ability to explore new exoplanet datasets through an interactive visualization of the exoplanets detected by the ML models. It is designed to be user-friendly, yet it also includes advanced features for those deeply involved in the field.
